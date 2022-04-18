@@ -108,11 +108,14 @@ function get_questions() {
   return dfd
     .readCSV("https://raw.githubusercontent.com/khelil/quizz-kids/master/datas/Questions_choixpeau_magique.csv")
     .then((df) => {
+      //console.log(df);
       for (var i = 0; i < df.$data.length; i++) {
         var question = {};
         for (var j = 0; j < df.$columns.length; j++) {
           let column_name = df.$columns[j].trim();
           column_name = column_name.replace(/"/g, "");
+          console.log(column_name);
+          console.log(df.$data[i][j]);
           question[column_name] = df.$data[i][j];
         }
         questions.push(question);
@@ -125,6 +128,7 @@ function get_questions() {
 
 function create_questions(questions) {
   Object.entries(questions).forEach(([index, value]) => {
+    //console.log(value);
     questions_container = document.getElementById("questions");
     //
     question_container = document.createElement("div");
@@ -137,13 +141,13 @@ function create_questions(questions) {
     question_container.append(question_title);
     //
     response_1_element = document.createElement("li");
-    response_1_element.append(value["reponse 1"] + value["bareme_reponse_1"]);
+    response_1_element.append(value["reponse 1"]);
     //
     response_2_element = document.createElement("li");
-    response_2_element.append(value["reponse 2"] + value["bareme_reponse_2"]);
+    response_2_element.append(value["reponse 2"]);
     //
     response_3_element = document.createElement("li");
-    response_3_element.append(value["reponse 3"] + value["bareme_reponse_3"]);
+    response_3_element.append(value["reponse 3"]);
     //
     responses_container = document.createElement("ul");
     responses_container.id = "responses-" + index;
@@ -175,7 +179,7 @@ async function launch() {
   //
   await get_questions();
   create_questions(questions);
-  console.log(questions);
+  //console.log(questions);
 }
 
 window.addEventListener("load", function (event) {
