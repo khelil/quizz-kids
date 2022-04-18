@@ -16,11 +16,6 @@ p {
   font-style: italic;
   color: black;
 }
-img {
-  margin-top: 150px;
-  border-radius: 15px;
-  size-adjust: 800px;
-}
 #Bouton1 {
   padding: 8px 15px;
   margin-top: 50px;
