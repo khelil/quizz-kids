@@ -108,14 +108,11 @@ function get_questions() {
   return dfd
     .readCSV("https://raw.githubusercontent.com/khelil/quizz-kids/master/datas/Questions_choixpeau_magique.csv")
     .then((df) => {
-      //console.log(df);
       for (var i = 0; i < df.$data.length; i++) {
         var question = {};
         for (var j = 0; j < df.$columns.length; j++) {
           let column_name = df.$columns[j].trim();
           column_name = column_name.replace(/"/g, "");
-          console.log(column_name);
-          console.log(df.$data[i][j]);
           question[column_name] = df.$data[i][j];
         }
         questions.push(question);
@@ -137,17 +134,29 @@ function create_questions(questions) {
     question_title = document.createElement("h2");
     question_title.classList.add("text-2xl");
     question_title.classList.add("mb-4");
-    question_title.append(value["Questions"]);
+    question_title.append(parseInt(index) + 1 + ". " + value["Questions"]);
     question_container.append(question_title);
     //
     response_1_element = document.createElement("li");
-    response_1_element.append(value["reponse 1"]);
+    response_1_button = document.createElement("button");
+    response_1_button.setAttribute("value", value["bareme_reponse_1"]);
+    response_1_button.classList.add("response");
+    response_1_button.append(value["reponse 1"] + " / " + value["bareme_reponse_1"]);
+    response_1_element.append(response_1_button);
     //
     response_2_element = document.createElement("li");
-    response_2_element.append(value["reponse 2"]);
+    response_2_button = document.createElement("button");
+    response_2_button.setAttribute("value", value["bareme_reponse_2"]);
+    response_2_button.classList.add("response");
+    response_2_button.append(value["reponse 2"] + " / " + value["bareme_reponse_2"]);
+    response_2_element.append(response_2_button);
     //
     response_3_element = document.createElement("li");
-    response_3_element.append(value["reponse 3"]);
+    response_3_button = document.createElement("button");
+    response_3_button.setAttribute("value", value["bareme_reponse_3"]);
+    response_3_button.classList.add("response");
+    response_3_button.append(value["reponse 3"] + " / " + value["bareme_reponse_3"]);
+    response_3_element.append(response_3_button);
     //
     responses_container = document.createElement("ul");
     responses_container.id = "responses-" + index;
@@ -162,24 +171,81 @@ function create_questions(questions) {
     questions_container.append(separator);
     //
   });
+  button_validate = document.createElement("button");
+  button_validate.id = "validation";
+  button_validate.append("Valider");
+  questions_container.append(button_validate);
 }
 
-async function launch() {
-  var persos = [];
-  await get_caracteristics();
-  await get_csv_persos();
+function reset_buttons(responses) {
+  responses = responses.getElementsByClassName("response");
+  for (var i = 0; i < responses.length; i++) {
+    responses[i].classList.remove("active");
+  }
+}
+
+function response_button_handler() {
+  responses = document.getElementsByClassName("response");
+  for (var i = 0; i < responses.length; i++) {
+    responses[i].onclick = function () {
+      reset_buttons(this.parentNode.parentNode);
+      this.classList.add("active");
+      user_responses[this.parentNode.parentNode.getAttribute("id")] = this.value;
+    };
+  }
+}
+
+function validation_button_handler() {
+  var button_validation = document.getElementById("validation");
+  button_validation.onclick = function () {
+    var responses_size = Object.keys(user_responses).length;
+    var responses_size_expected = Object.keys(questions).length;
+    if (responses_size < responses_size_expected) {
+      alert("Vous devez répondre à toutes les questions");
+    } else {
+      calculate_score();
+    }
+  };
+}
+
+function calculate_score() {
+  var courage = 0;
+  var ambition = 0;
+  var intelligence = 0;
+  var good = 0;
+  Object.entries(user_responses).forEach(([index, value]) => {
+    result = value.split("-");
+    courage += parseInt(result[0]);
+    ambition += parseInt(result[1]);
+    intelligence += parseInt(result[2]);
+    good += parseInt(result[3]);
+  });
+  score = { Courage: parseInt(courage / 12), Ambition: parseInt(ambition / 12), Intelligence: parseInt(intelligence / 12), Good: parseInt(good / 12) };
+
   // fusionne les deux dictionnaires
   Object.entries(caracteristics_index_name).forEach(([index, value]) => {
     persos[index] = { ...persos_index_name[index], ...value };
   });
   //
-  var persos_distance = ajout_distance(persos, { Courage: 3, Ambition: 4, Intelligence: 2, Good: 1 });
-  var kppv = get_kppv(persos_distance, 20);
+  var persos_distance = ajout_distance(persos, score);
+  var kppv = get_kppv(persos_distance, 5);
   var best_distance = meilleur_distance(kppv);
-  //
+
+  console.log("score", score);
+  console.log("kppv", kppv);
+  console.log("best_distance", best_distance);
+}
+
+var score = {};
+var user_responses = {};
+var persos = [];
+async function launch() {
+  await get_caracteristics();
+  await get_csv_persos();
   await get_questions();
   create_questions(questions);
-  //console.log(questions);
+  response_button_handler();
+  validation_button_handler();
 }
 
 window.addEventListener("load", function (event) {

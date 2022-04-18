@@ -16,6 +16,9 @@ p {
   font-style: italic;
   color: black;
 }
+button.active {
+  background-color: red;
+}
 #Bouton1 {
   padding: 8px 15px;
   margin-top: 50px;
